@@ -1,0 +1,9 @@
+{
+  "intro": "Here's your client retention report for {month}. It covers {client_count} clients, ranked by monthly profit.",
+  "headline": "Across the whole book, total monthly profit comes to {total_profit}. Overall urgency is {urgency}.",
+  "retain_group": "{count_word} clients are healthy and marked Retain: {names}.",
+  "retain_top": "{name} leads the table, bringing in {revenue} a month for {profit} profit, a {margin} percent margin.",
+  "review_item": "{name} needs a review. It's profitable at {profit} a month, but the margin is only {margin} percent.",
+  "drop_item": "{name} is loss-making, costing {loss} more than it earns each month, so it's flagged to Drop.",
+  "outro": "That's {retain_count} to retain, {review_count} to review, and {drop_count} to drop. The full breakdown is in the attached PDF."
+}

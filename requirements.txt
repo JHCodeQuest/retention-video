@@ -1,0 +1,6 @@
+fpdf2>=2.7
+pypdfium2>=4.30
+pillow>=10.0
+requests>=2.31
+python-dotenv>=1.0
+pytest>=8.0
