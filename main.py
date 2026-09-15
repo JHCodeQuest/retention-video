@@ -6,16 +6,15 @@
 """
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-import frames
+import pipeline
 import report
 import script
-import tts
-import video
 
 ROOT = Path(__file__).resolve().parent
 
@@ -34,27 +33,22 @@ def main() -> None:
 
     clients = report.load_clients(args.clients)
     results, pdf_path, urgency = report.build_report(clients, run_dir / "client-retention-report.pdf")
-    segments = script.build_script(results, urgency, report.format_gbp, args.template)
 
     if args.script_only:
-        for seg in segments:
+        for seg in script.build_script(results, urgency, report.format_gbp, args.template):
             print(f"[{seg.focus or 'full page'}] {seg.text}")
         return
 
     print(f"PDF:      {pdf_path}")
-    frame_paths = frames.render_frames(pdf_path, segments, run_dir / "frames")
-    print(f"Frames:   {len(frame_paths)}")
-
-    audios = []
-    for seg in segments:
-        audios.append(tts.synthesize(seg.spoken, ROOT / ".tts-cache"))
-    voiced = any(a.name.startswith("el-") for a in audios)
+    voiced = bool(os.environ.get("ELEVENLABS_API_KEY"))
     print(f"Audio:    {'ElevenLabs' if voiced else 'silent placeholders (no ELEVENLABS_API_KEY)'}")
 
-    video.assemble(frame_paths, audios, out_mp4, run_dir / "clips")
+    mp4, segments = pipeline.render_video(results, urgency, pdf_path, out_mp4,
+                                          work_dir=run_dir, template=args.template)
     (run_dir / "script.json").write_text(
         json.dumps([seg.__dict__ for seg in segments], indent=2), encoding="utf-8")
-    print(f"Video:    {out_mp4}")
+    print(f"Frames:   {len(segments)}")
+    print(f"Video:    {mp4}")
 
 
 if __name__ == "__main__":

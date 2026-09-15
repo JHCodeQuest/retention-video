@@ -41,10 +41,22 @@ speed, so you can iterate on visuals and wording for free. Generated clips are
 cached in `.tts-cache/` by voice + model + text, so re-renders only pay for
 lines that changed.
 
+## In Slack
+
+slack-file-bot can post the video alongside the PDF: set
+`RETENTION_VIDEO_PATH` in the bot's `.env` to this checkout, and
+`/client-report` renders and uploads the MP4 right after the PDF. The bot calls
+`pipeline.render_video()` with the results it just rendered, so the narration
+always matches the report. The ElevenLabs key is read from this project's
+`.env`.
+
 ## Data
 
-All data is fictional: slack-file-bot's `MOCK_CLIENTS` by default. The bot's
-live outreach-tracker feed is never called from this project.
+Run standalone, all data is fictional: slack-file-bot's `MOCK_CLIENTS` by
+default, and the bot's live outreach-tracker feed is never called from here.
+When the bot drives it, the video narrates whatever data the bot's report
+used, and the client names and figures in the script are sent to ElevenLabs
+for synthesis.
 
 ## How it works
 
@@ -59,6 +71,8 @@ live outreach-tracker feed is never called from this project.
 - **Voice:** `tts.py` calls `POST /v1/text-to-speech/{voice_id}`.
 - **Video:** `video.py` holds each frame for its narration plus a short
   pause, then concatenates the clips losslessly.
+- **Entry point:** `pipeline.render_video()` ties these together for both
+  `main.py` and the Slack bot.
 
 ## Tests
 

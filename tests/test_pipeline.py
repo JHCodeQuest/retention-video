@@ -6,6 +6,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import frames
+import pipeline
 import report
 import script
 import tts
@@ -64,12 +65,13 @@ def test_every_focus_is_found_on_the_pdf(built):
     doc.close()
 
 
-def test_end_to_end_offline_render(built, tmp_path):
-    _, pdf, segments = built
-    frame_paths = frames.render_frames(pdf, segments, tmp_path / "frames")
-    audios = [tts.synthesize(s.spoken, tmp_path / "cache", api_key="") for s in segments]
-    out = video.assemble(frame_paths, audios, tmp_path / "out.mp4", tmp_path / "clips")
-    expected = sum(video.audio_seconds(a) + video.PAUSE_SECONDS for a in audios)
+def test_end_to_end_offline_render(built, tmp_path, monkeypatch):
+    results, pdf, segments = built
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "")  # stay offline even if .env has a key
+    monkeypatch.setattr(pipeline, "TTS_CACHE", tmp_path / "cache")
+    out, rendered = pipeline.render_video(results, "LOW", pdf, tmp_path / "out.mp4")
+    assert [s.key for s in rendered] == [s.key for s in segments]
+    expected = sum(tts.estimate_seconds(s.spoken) + video.PAUSE_SECONDS for s in segments)
     assert video.audio_seconds(out) == pytest.approx(expected, abs=0.5)
 
 
